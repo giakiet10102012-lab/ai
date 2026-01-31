@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Self-Learning Coding AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .message-content code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        #userInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #sendBtn:hover {
+            transform: scale(1.05);
+        }
+
+        #sendBtn:active {
+            transform: scale(0.95);
+        }
+
+        .typing {
+            display: none;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing.show {
+            display: block;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .btn-stats {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-export {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Self-Learning Coding AI</h1>
+            <p>AI tự học từ mỗi câu hỏi của bạn</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalChats">0</div>
+                    <div>Conversations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalTopics">0</div>
+                    <div>Topics</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="codeExamples">0</div>
+                    <div>Code Examples</div>
+                </div>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-stats" onclick="showStats()">📊 Thống kê</button>
+                <button class="btn btn-export" onclick="exportData()">💾 Export</button>
+                <button class="btn btn-clear" onclick="clearChat()">🗑️ Xóa</button>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai">
+                <div class="message-content">
+                    👋 Xin chào! Tôi là AI Assistant chuyên về lập trình.<br><br>
+                    Tôi có khả năng <strong>tự học</strong> từ mỗi conversation với bạn. 
+                    Càng chat nhiều, tôi càng hiểu bạn hơn!<br><br>
+                    Hãy hỏi tôi về Python, JavaScript, algorithms, hoặc bất kỳ vấn đề lập trình nào! 🚀
+                </div>
+            </div>
+        </div>
+
+        <div class="typing" id="typing">🤖 AI đang suy nghĩ...</div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Hỏi về lập trình..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button id="sendBtn" onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
+
+    <script>
+        // Local Storage for AI learning
+        const AI_STORAGE_KEY = 'ai_learning_data';
+        
+        // Initialize AI data
+        let aiData = JSON.parse(localStorage.getItem(AI_STORAGE_KEY)) || {
+            conversations: [],
+            topics: {},
+            codePatterns: {},
+            bestPractices: []
+        };
+
+        // Conversation history
+        let conversationHistory = [];
+
+        // Update stats display
+        function updateStats() {
+            document.getElementById('totalChats').textContent = aiData.conversations.length;
+            document.getElementById('totalTopics').textContent = Object.keys(aiData.topics).length;
+            document.getElementById('codeExamples').textContent = Object.keys(aiData.codePatterns).length;
+        }
+
+        // Extract topics from text
+        function extractTopics(text) {
+            const keywords = [
+                'python', 'javascript', 'java', 'c++', 'react', 'node',
+                'database', 'sql', 'api', 'algorithm', 'data structure',
+                'machine learning', 'ai', 'web', 'backend', 'frontend',
+                'docker', 'git'
+            ];
+            
+            const textLower = text.toLowerCase();
+            return keywords.filter(keyword => textLower.includes(keyword));
+        }
+
+        // Learn from conversation
+        function learnFromConversation(userMessage, aiResponse) {
+            // Save conversation
+            aiData.conversations.push({
+                timestamp: new Date().toISOString(),
+                user: userMessage,
+                ai: aiResponse
+            });
+
+            // Extract and count topics
+            const topics = extractTopics(userMessage);
+            topics.forEach(topic => {
+                aiData.topics[topic] = (aiData.topics[topic] || 0) + 1;
+            });
+
+            // Extract code patterns
+            const codeBlocks = aiResponse.match(/```[\s\S]*?```/g);
+            if (codeBlocks) {
+                codeBlocks.forEach(block => {
+                    const lang = block.match(/```(\w+)/)?.[1] || 'code';
+                    if (!aiData.codePatterns[lang]) {
+                        aiData.codePatterns[lang] = [];
+                    }
+                    aiData.codePatterns[lang].push({
+                        question: userMessage.substring(0, 100),
+                        code: block,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            }
+
+            // Save to localStorage
+            localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(aiData));
+            updateStats();
+        }
+
+        // Get AI response (simulated - replace with actual API call)
+        async function getAIResponse(message) {
+            // This is a DEMO - Replace with actual OpenAI API call
+            // For demo, simulate responses
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const responses = {
+                'python': `Về Python, đây là một ngôn ngữ rất mạnh mẽ! 
+
+\`\`\`python
+# Ví dụ Python cơ bản
+def hello_world():
+    print("Hello, World!")
+    
+hello_world()
+\`\`\`
+
+Python nổi tiếng vì:
+- Cú pháp đơn giản, dễ học
+- Thư viện phong phú (NumPy, Pandas, Django)
+- Ứng dụng rộng: Web, AI/ML, Data Science
+- Community lớn và active
+
+Bạn muốn học Python về lĩnh vực nào cụ thể?`,
+
+                'javascript': `JavaScript là ngôn ngữ web phổ biến nhất!
+
+\`\`\`javascript
+// Ví dụ JavaScript ES6+
+const greet = (name) => {
+    return \`Hello, \${name}!\`;
+}
+
+console.log(greet('Developer'));
+\`\`\`
+
+**Best practices:**
+- Dùng const/let thay vì var
+- Arrow functions cho code ngắn gọn
+- Async/await cho xử lý bất đồng bộ
+- Module pattern để organize code
+
+Bạn đang làm Frontend hay Backend JavaScript?`,
+
+                'default': `Tôi đã ghi nhớ câu hỏi của bạn! 
+
+Dựa trên kiến thức đã học từ ${aiData.conversations.length} conversations trước, tôi có thể giúp bạn về:
+
+${Object.entries(aiData.topics).slice(0, 5).map(([topic, count]) => 
+    `• ${topic.toUpperCase()}: ${count} lần`
+).join('\n') || '• Chưa có topics nào'}
+
+Hãy hỏi tôi cụ thể hơn về lập trình nhé! 🚀`
+            };
+
+            // Simple keyword matching
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('python')) return responses.python;
+            if (lowerMessage.includes('javascript') || lowerMessage.includes('js')) return responses.javascript;
+            
+            return responses.default;
+        }
+
+        // Add message to chat
+        function addMessage(content, isUser) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Parse code blocks
+            content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code>${escapeHtml(code)}</code></pre>`;
+            });
+            
+            // Parse bold
+            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Parse bullet points
+            content = content.replace(/^• /gm, '&bull; ');
+            
+            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true);
+            input.value = '';
+            
+            // Show typing indicator
+            document.getElementById('typing').classList.add('show');
+            
+            // Get AI response
+            const response = await getAIResponse(message);
+            
+            // Hide typing indicator
+            document.getElementById('typing').classList.remove('show');
+            
+            // Add AI response
+            addMessage(response, false);
+            
+            // Learn from this conversation
+            learnFromConversation(message, response);
+            
+            // Update conversation history
+            conversationHistory.push({ role: 'user', content: message });
+            conversationHistory.push({ role: 'assistant', content: response });
+        }
+
+        // Handle Enter key
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Show stats
+        function showStats() {
+            const topTopics = Object.entries(aiData.topics)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([topic, count]) => `• ${topic.toUpperCase()}: ${count} lần`)
+                .join('\n') || 'Chưa có data';
+
+            const statsMessage = `📊 **THỐNG KÊ HỌC TẬP**
+
+**Tổng conversations:** ${aiData.conversations.length}
+**Topics đã học:** ${Object.keys(aiData.topics).length}
+**Code examples:** ${Object.keys(aiData.codePatterns).length}
+**Best practices:** ${aiData.bestPractices.length}
+
+**🔥 Top Topics:**
+${topTopics}`;
+
+            addMessage(statsMessage, false);
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(aiData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ai-knowledge-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            addMessage('✅ Đã export kiến thức! File đã được tải xuống.', false);
+        }
+
+        // Clear chat
+        function clearChat() {
+            if (confirm('Xóa tất cả conversations? Knowledge đã học sẽ được giữ lại.')) {
+                document.getElementById('chatContainer').innerHTML = '';
+                addMessage('🗑️ Đã xóa chat. Knowledge vẫn được lưu!', false);
+            }
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
